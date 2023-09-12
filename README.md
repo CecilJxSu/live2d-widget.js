@@ -6,12 +6,9 @@
 步骤一：在 package.json 中添加如下代码：
 ```json
 {
-    // ...
     "resolutions": {
-        // ...
         "live2d-widget": "https://github.com/CecilJxSu/live2d-widget.js"
     }
-    // ...
 }
 ```
 
