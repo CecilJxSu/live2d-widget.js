@@ -366,9 +366,11 @@ cModel.prototype.startMotion = function(name, no, priority)
     var thisRef = this;
     var motion;
 
-    if (this.motions[name] == null)
+    // 修复：看板娘在页面加载时，只加载动作的其中一个。
+    // 如果有多个动作时，则不能随机切换其它动作。
+    if (this.motions[motionName] == null)
     {
-        this.loadMotion(name, this.modelHomeDir + motionName, function(mtn) {
+        this.loadMotion(motionName, this.modelHomeDir + motionName, function(mtn) {
             motion = mtn;
 
 
@@ -378,7 +380,7 @@ cModel.prototype.startMotion = function(name, no, priority)
     }
     else
     {
-        motion = this.motions[name];
+        motion = this.motions[motionName];
 
 
         thisRef.setFadeInFadeOut(name, no, priority, motion);
