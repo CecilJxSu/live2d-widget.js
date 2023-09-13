@@ -13,20 +13,50 @@
 
 import device from 'current-device';
 import { config, configApplyer }from './config/configMgr';
-import { EventEmitter } from './utils/EventEmitter';
 
 if (process.env.NODE_ENV === 'development'){
   console.log('--- --- --- --- ---\nLive2Dwidget: Hey that, notice that you are now in DEV MODE.\n--- --- --- --- ---');
 }
+
+let coreApp;
 /**
  * The main entry point, which is ... nothing
  */
 
-class L2Dwidget extends EventEmitter {
+class L2Dwidget {
 
   constructor() {
-    super();
+    this.eventHandlers = {};
     this.config = config;
+  }
+
+  on(name, handler) {
+    if (typeof handler !== 'function') {
+      throw new TypeError('Event handler is not a function.');
+    }
+    if (!this.eventHandlers[name]) {
+      this.eventHandlers[name] = [];
+    }
+    this.eventHandlers[name].push(handler);
+    return this;
+  }
+
+  emit(name, ...args) {
+    if (!!this.eventHandlers[name]) {
+      this.eventHandlers[name].forEach(handler => {
+        if (typeof handler === 'function') {
+          handler(...args);
+        }
+      });
+    }
+    if (!!this.eventHandlers['*']) {
+      this.eventHandlers['*'].forEach(handler => {
+        if (typeof handler === 'function') {
+          handler(name, ...args);
+        }
+      });
+    }
+    return this;
   }
 
 /**
@@ -58,8 +88,8 @@ class L2Dwidget extends EventEmitter {
       return;
     }
     import(/* webpackMode: 'lazy' */ './cLive2DApp').then(f => {
-      this.coreApp = f;
-      this.live2DMgr = this.coreApp.theRealInit(this);
+      coreApp = f;
+      coreApp.theRealInit(this);
     }).catch(err => {
       console.error(err);
     });
@@ -73,7 +103,7 @@ class L2Dwidget extends EventEmitter {
  */
 
   captureFrame(callback){
-    return this.coreApp.captureFrame(callback);
+    return coreApp.captureFrame(callback);
   }
 
 /**

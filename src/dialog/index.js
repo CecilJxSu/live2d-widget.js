@@ -1,14 +1,8 @@
 import { config } from '../config/configMgr';
-import { ScriptEngine } from './script';
 import { L2Dwidget } from '../index';
-import { everyEmitter } from './emitter/every';
-import { hoverEmitter } from './emitter/hover';
-import { tapbodyEmitter } from './emitter/tapbody'; 
-import { tapfaceEmitter } from './emitter/tapface'; 
-import { hitokotoVariable } from './variable/hitokoto';
 
-const dialogStyle = document.createElement('style');
-dialogStyle.innerHTML = `
+document.head.innerHTML += `
+<style>
   .live2d-widget-dialog-container {
     width: 300px;
     height: 120px;
@@ -39,8 +33,9 @@ dialogStyle.innerHTML = `
   @keyframes live2d-widget-dialog-tingle {
     0% { transform: translate(-1px, 1.5px) rotate(-2deg); }
     100% { transform: translate(1px, -1.5px) rotate(2deg); }
-  }`;
-document.head.appendChild(dialogStyle);
+  }
+</style>
+`;
 
 let containerElement,dialogElement,closeTimer;
 
@@ -51,26 +46,16 @@ let containerElement,dialogElement,closeTimer;
 function createDialogElement(root) {
   containerElement = document.createElement('div');
   containerElement.className = 'live2d-widget-dialog-container';
-  containerElement.style.transform = `scale(${config.display.width / 250})`;
+  containerElement.style.transform = `scale(${config.display.width / 250})`
   dialogElement = document.createElement('div');
   dialogElement.className = 'live2d-widget-dialog';
   containerElement.appendChild(dialogElement);
   root.appendChild(containerElement);
 
   L2Dwidget.emit('create-dialog', containerElement);
-  
-  if (config.dialog.script) {
-    const scriptEngine = new ScriptEngine(alertText);
-    scriptEngine.registerEmitter('every', everyEmitter(scriptEngine));
-    scriptEngine.registerEmitter('hover', hoverEmitter());
-    scriptEngine.registerEmitter('tap body', tapbodyEmitter(L2Dwidget));
-    scriptEngine.registerEmitter('tap face', tapfaceEmitter(L2Dwidget));
 
-    scriptEngine.registerVariable('hitokoto', hitokotoVariable);
-    Object.keys(config.dialog.script).forEach(key => {
-      scriptEngine.run(key, config.dialog.script[key]);
-    });
-  }
+  if (config.dialog.hitokoto)
+    showHitokotoLoop()
 }
 
 function displayDialog() {
@@ -90,6 +75,21 @@ function alertText(text) {
   }, 5000);
 }
 
+function showHitokotoLoop() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('get', 'https://v1.hitokoto.cn');
+  xhr.setRequestHeader("Cache-Control", "no-cache");
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      var data = JSON.parse(xhr.responseText);
+      alertText(data.hitokoto);
+      setTimeout(showHitokotoLoop, 10000)
+    }
+  }
+  xhr.send();
+}
+
+
 module.exports = {
-  createDialogElement, displayDialog, hiddenDialog, alertText
-};
+  createDialogElement, displayDialog, hiddenDialog, alertText, showHitokotoLoop
+}

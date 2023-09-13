@@ -48,9 +48,8 @@ function createElement() {
   document.body.appendChild(newElem);
   L2Dwidget.emit('create-container', newElem);
 
-  if (config.dialog.enable) {
+  if (config.dialog.enable)
     createDialogElement(newElem);
-  }
 
   let newCanvasElem = document.createElement('canvas');
   newCanvasElem.setAttribute('id', config.name.canvas);
